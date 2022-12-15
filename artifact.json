@@ -4,7 +4,7 @@
   "actions": [
     {
       "action": "sorry-cypress-cloudformation",
-      "path": "cdk/cdk.out/SorryCypress.template.json",
+      "path": "packages/cdk/cdk.out/SorryCypress.template.json",
       "compress": false
     },
     {
