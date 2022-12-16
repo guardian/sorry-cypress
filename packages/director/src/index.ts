@@ -1,4 +1,5 @@
 // organize-imports-ignore
+import 'source-map-support/register';
 import type * as lambda from 'aws-lambda';
 import 'source-map-support/register';
 import { init as initHooks } from '@sorry-cypress/director/lib/hooks/init';
@@ -6,7 +7,10 @@ import { init as initHooks } from '@sorry-cypress/director/lib/hooks/init';
 import { app } from './app';
 // import { PORT } from './config';
 import { getExecutionDriver, getScreenshotsDriver } from './drivers';
-import { createServer, proxy } from 'aws-serverless-express';
+// import { createServer, proxy } from 'aws-serverless-express';
+import serverlessExpress from '@vendia/serverless-express';
+// eslint-disable-next-line @typescript-eslint/no-var-requires
+// const serverlessExpress = require('@vendia/serverless-express');
 
 // async function main() {
 //   await initHooks();
@@ -42,13 +46,24 @@ app.disable('x-powered-by');
 
 export * from './types';
 
-export const handler = async (
+let serverlessExpressInstance;
+
+const setup = async (
   event: lambda.APIGatewayProxyEvent,
   context: lambda.Context
 ) => {
   await initHooks();
   await getExecutionDriver();
   await getScreenshotsDriver();
+  serverlessExpressInstance = serverlessExpress({ app });
+  return serverlessExpressInstance(event, context);
+};
 
-  return proxy(createServer(app), event, context);
+export const handler = async (
+  event: lambda.APIGatewayProxyEvent,
+  context: lambda.Context
+) => {
+  if (serverlessExpressInstance)
+    return serverlessExpressInstance(event, context);
+  return setup(event, context);
 };
